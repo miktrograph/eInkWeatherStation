@@ -85,7 +85,7 @@ long Delta         = 30; // ESP32 rtc speed compensation, prevents display at xx
 
 GFXfont currentFont;
 uint8_t *framebuffer;
-uint8_t sensorTimestamp;
+bool internalSensorAvailable;
 sht3x_sensors_values_t sensors_values = {
     .temperature = 0x00,
     .humidity = 0x00
@@ -369,7 +369,12 @@ void startInternalMeasurement()
 void getInternalData()
 {
     if(sht3x_read_measurement(&sensors_values) != ESP_OK) {
+        internalSensorAvailable = false;
         Serial.println("Sensors read measurement error!");
+    }
+    else
+    {
+        internalSensorAvailable = true;
     }
 
     WxConditions[0].TemperatureIndoor = sensors_values.temperature;
@@ -799,10 +804,14 @@ void DisplayForecastTextSection(int x, int y)
 
 void DisplayTemperatureSectionIndoor(int x, int y)
 {
-    setFont(OpenSans10B);
-    drawString(x - 40, y - 30, "Innen", LEFT);
-    setFont(OpenSans18B);
-    drawString(x - 40, y, String(WxConditions[0].TemperatureIndoor, 1) + "° " + String(WxConditions[0].HumidityIndoor, 0) + "%", LEFT);
+    if (internalSensorAvailable)
+    {
+        setFont(OpenSans10B);
+        drawString(x - 40, y - 30, "Innen", LEFT);
+        setFont(OpenSans18B);
+        drawString(x - 40, y, String(WxConditions[0].TemperatureIndoor, 1) + "° " + String(WxConditions[0].HumidityIndoor, 0) + "%", LEFT);
+
+    }
     
 }
 
